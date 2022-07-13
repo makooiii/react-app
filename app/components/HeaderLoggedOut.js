@@ -15,10 +15,7 @@ function HeaderLoggedOut(props) {
         password
       });
       if (response.data) {
-        localStorage.setItem("reactAppToken", response.data.token);
-        localStorage.setItem("reactAppUsername", response.data.username);
-        localStorage.setItem("reactAppAvatar", response.data.avatar);
-        appDispatch({ type: "login" });
+        appDispatch({ type: "login", data: response.data });
       } else {
         console.log("Incorrect username / password");
       }
