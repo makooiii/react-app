@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { useImmerReducer } from "use-immer";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Axios from "axios";
+import { CSSTransition } from "react-transition-group";
 Axios.defaults.baseURL = "http://localhost:8080";
 
 import StateContext from "./StateContext";
@@ -84,7 +85,9 @@ function Main() {
             <Route path="/profile/:username/*" element={<Profile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
-          {state.isSearchOpen ? <Search /> : ""}
+          <CSSTransition timeout={330} in={state.isSearchOpen} classNames="search-overlay" unmountOnExit>
+            <Search />
+          </CSSTransition>
           <Footer />
         </BrowserRouter>
       </DispatchContext.Provider>
