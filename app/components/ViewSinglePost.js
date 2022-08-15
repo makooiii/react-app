@@ -29,11 +29,12 @@ function ViewSinglePost() {
         console.log("There Was a problem or the request was cancelled");
       }
     }
+    // re-render if the id changes
     fetchPost();
     return () => {
       ourRequest.cancel();
     };
-  }, []);
+  }, [id]);
 
   if (!isLoading && !post) {
     return <NotFound />;
