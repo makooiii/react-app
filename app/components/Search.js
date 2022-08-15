@@ -1,6 +1,7 @@
 import React, { useEffect, useContext } from "react";
 import DispatchContext from "../DispatchContext";
 import { useImmer } from "use-immer";
+import Axios from "axios";
 
 function Search() {
   const appDispatch = useContext(DispatchContext);
@@ -19,20 +20,46 @@ function Search() {
 
   // search for every letter/word
   useEffect(() => {
-    // delay the search
-    const delay = setTimeout(() => {
+    if (state.searchTerm.trim()) {
       setState(draft => {
-        draft.requestCount++;
+        draft.show = "loading";
       });
-    }, 3000);
+      // delay the search
+      const delay = setTimeout(() => {
+        setState(draft => {
+          draft.requestCount++;
+        });
+      }, 3000);
 
-    // clean up function
-    return () => clearTimeout(delay);
+      // clean up function
+      return () => clearTimeout(delay);
+    } else {
+      setState(draft => {
+        draft.show = "neither";
+      });
+    }
   }, [state.searchTerm]);
 
+  // Send Axios request
   useEffect(() => {
     if (state.requestCount) {
-      // Send Axios request here
+      const ourRequest = Axios.CancelToken.source();
+      async function fetchResults() {
+        try {
+          // send a request to axios using the keyword used
+          const response = await Axios.post("/search", { searchTerm: state.searchTerm }, { cancelToken: ourRequest.token });
+          setState(draft => {
+            draft.results = response.data;
+            draft.show = "results";
+          });
+        } catch (e) {
+          console.log("There was a problem");
+        }
+      }
+      fetchResults();
+
+      // clean up
+      return () => ourRequest.cancel();
     }
   }, [state.requestCount]);
 
@@ -66,7 +93,8 @@ function Search() {
       </div>
       <div className="search-overlay-bottom">
         <div className="container container--narrow py-3">
-          <div className="live-search-results live-search-results--visible">
+          <div className={"circle-loader " + (state.show == "loading" ? "circle-loader--visible" : "")}></div>
+          <div className={"live-search-results " + (state.show == "results" ? "live-search-results--visible" : "")}>
             <div className="list-group shadow-sm">
               <div className="list-group-item active">
                 <strong>Search Results</strong> (3 items found)
