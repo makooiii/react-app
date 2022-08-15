@@ -1,18 +1,54 @@
 import React, { useEffect, useContext } from "react";
 import DispatchContext from "../DispatchContext";
+import { useImmer } from "use-immer";
 
 function Search() {
   const appDispatch = useContext(DispatchContext);
+  const [state, setState] = useImmer({
+    searchTerm: "",
+    results: [],
+    show: "neither",
+    requestCount: 0
+  });
 
+  // listen to the event, ex: use of keys like esc
   useEffect(() => {
     document.addEventListener("keyup", searchKeypressHandler);
     return () => document.removeEventListener("keyup", searchKeypressHandler);
   }, []);
 
+  // search for every letter/word
+  useEffect(() => {
+    // delay the search
+    const delay = setTimeout(() => {
+      setState(draft => {
+        draft.requestCount++;
+      });
+    }, 3000);
+
+    // clean up function
+    return () => clearTimeout(delay);
+  }, [state.searchTerm]);
+
+  useEffect(() => {
+    if (state.requestCount) {
+      // Send Axios request here
+    }
+  }, [state.requestCount]);
+
+  // exit search using esc button
   function searchKeypressHandler(e) {
     if (e.keyCode == 27) {
       appDispatch({ type: "closeSearch" });
     }
+  }
+
+  // useImmer function
+  function handleInput(e) {
+    const value = e.target.value;
+    setState(draft => {
+      draft.searchTerm = value;
+    });
   }
 
   return (
@@ -22,7 +58,7 @@ function Search() {
           <label htmlFor="live-search-field" className="search-overlay-icon">
             <i className="fas fa-search"></i>
           </label>
-          <input autoFocus type="text" autoComplete="off" id="live-search-field" className="live-search-field" placeholder="What are you interested in?" />
+          <input onChange={handleInput} autoFocus type="text" autoComplete="off" id="live-search-field" className="live-search-field" placeholder="What are you interested in?" />
           <span onClick={() => appDispatch({ type: "closeSearch" })} className="close-live-search">
             <i className="fas fa-times-circle"></i>
           </span>
